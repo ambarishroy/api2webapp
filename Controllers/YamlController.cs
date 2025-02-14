@@ -22,12 +22,12 @@ namespace api2webapp.Controllers
         }
 
         [HttpPost]
-        public Task<IActionResult> UploadAsync(IFormFile yaml)
+        public async Task<IActionResult> UploadAsync(IFormFile yaml)
         {
             string contentRootPath = _hostingEnvironment.ContentRootPath;
             if (yaml == null || yaml.Length==0)
             {
-                return Task.FromResult<IActionResult>(BadRequest("No file uploaded"));
+                return await Task.FromResult<IActionResult>(BadRequest("No file uploaded"));
             }
             else
             {
@@ -43,17 +43,19 @@ namespace api2webapp.Controllers
                 {
                     using (FileStream fs = new FileStream(filePath, FileMode.Create))
                     {
-                        yaml.CopyTo(fs);
+                       await yaml.CopyToAsync(fs);
                     }
                 }
                 catch (Exception ex)
                 {
                     // Log or inspect the error
                     Console.WriteLine($"Error: {ex.Message}");
-                    return Task.FromResult<IActionResult>(StatusCode(500, "Internal Server Error"));
+                    return await Task.FromResult<IActionResult>(StatusCode(500, "Internal Server Error"));
                 }
-                var endpoints = Services.YamlParser.EndpointExtractor(filePath);
-                return Task.FromResult<IActionResult>(View());
+                var obj = new FormController();
+                var result = obj.Index(filePath);
+                
+                return RedirectToAction("Index", "Form", new { filePath });
             }
         }
     }

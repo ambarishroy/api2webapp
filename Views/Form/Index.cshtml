@@ -1,0 +1,18 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model List<ApiEndpoint>
+<h2>Generated Forms from YAML</h2>
+@foreach(var endpoint in Model){
+    @using (Html.BeginForm("SubmitForm", "Form", new { path = endpoint.Path }, FormMethod.Post))
+    {
+        foreach(var param in endpoint.Parameters){
+            <label for="@param.Key">@param.Key (@param.Value):</label>
+            <input type="text" name="@param.Key" required class="form-control" />
+            <br />
+        }
+        <button type="submit" class="btn btn-primary">Submit</button>
+    }
+}

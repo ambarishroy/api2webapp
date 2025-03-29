@@ -1,14 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using api2webapp.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace api2webapp.Controllers
 {
     [Route("DynamicForm")]
     public class FormController : Controller
     {
+        private static List<ApiEndpoint> _endpoints;
+
         public IActionResult Index(string filePath)
         {
-            var endpoints = Services.YamlParser.EndpointExtractor(filePath);
-            return View(endpoints);
+            _endpoints = Services.YamlParser.EndpointExtractor(filePath);
+            return View("Index", _endpoints); // List of links to individual forms
+        }
+
+        [HttpGet("{formName}")]
+        public IActionResult Form(string formName)
+        {
+            if (_endpoints == null)
+            {
+                // Re-load YAML if needed
+                string yamlPath = Path.Combine(Directory.GetCurrentDirectory(), "api-docs/user123/api.yaml");
+                _endpoints = Services.YamlParser.EndpointExtractor(yamlPath);
+            }
+
+            var endpoint = _endpoints.FirstOrDefault(e => GetSlugFromPath(e.Path).Equals(formName, StringComparison.OrdinalIgnoreCase));
+
+            if (endpoint == null)
+                return NotFound("Form not found");
+
+            return View("Form", endpoint);
+        }
+
+        private string GetSlugFromPath(string path)
+        {
+            return path.Trim('/').Split('/').Last().Replace("{", "").Replace("}", "");
         }
 
         [HttpPost("SubmitForm")]
@@ -25,15 +51,13 @@ namespace api2webapp.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return View("Success"); // Redirect to success page
+                    return View("Success");
                 }
                 else
                 {
-                    return View("Error"); // Redirect to error page
+                    return View("Error");
                 }
             }
         }
-
-
     }
 }

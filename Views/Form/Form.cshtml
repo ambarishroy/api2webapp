@@ -1,0 +1,15 @@
+﻿@model ApiEndpoint
+
+<h2>Form for @Model.Path</h2>
+
+@using (Html.BeginForm("SubmitForm", "Form", new { path = Model.Path }, FormMethod.Post))
+{
+    foreach (var param in Model.Parameters)
+    {
+        <label for="@param.Key">@param.Key (@param.Value):</label>
+        <input type="text" name="@param.Key" class="form-control" required />
+        <br />
+    }
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+<a href="@Url.Action("Index", "Form")">← Back to All Forms</a>
